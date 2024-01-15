@@ -1,64 +1,55 @@
-import router from './router'
-import store from './store'
-import { Message } from 'element-ui'
-import NProgress from 'nprogress' // progress bar
-import 'nprogress/nprogress.css' // progress bar style
-import { getToken } from '@/utils/auth' // get token from cookie
-import getPageTitle from '@/utils/get-page-title'
+// 导入路由实例
+import router from '@/router'
+// 引入进度条
+import nprogress from 'nprogress'
+// 引入进度条对应的样式
+import 'nprogress/nprogress.css'
+// 引入vuex实例对象
+import store from '@/store'
 
-NProgress.configure({ showSpinner: false }) // NProgress Configuration
-
-const whiteList = ['/login'] // no redirect whitelist
-
-router.beforeEach(async(to, from, next) => {
-  // start progress bar
-  NProgress.start()
-
-  // set page title
-  document.title = getPageTitle(to.meta.title)
-
-  // determine whether the user has logged in
-  const hasToken = getToken()
-
-  if (hasToken) {
+// 定义白名单，此路径不需要token就可以访问
+const whiteList = ['/login', '/404']
+/**
+ * 前置守卫
+ * 参数：
+ *  to：信息要到哪里去
+ *  from：信息从哪里来
+ *  next：必须要执行的函数。如果不执行next，跳转就不会执行。说白了就是让着通行，如果没有next的话，页面会直接空白
+ */
+router.beforeEach((to, from, next) => {
+  // 前置守卫开启进度条
+  nprogress.start()
+  if (store.getters.token) {
+    // 存在token
+    // 判断要去的地方是不是登录页面
     if (to.path === '/login') {
-      // if is logged in, redirect to the home page
-      next({ path: '/' })
-      NProgress.done()
+      // 此时已经登录了，那就直接跳转到主页而不是登录页
+      // next("/") 表示中转页面到主页
+      next('/')
+      // 当next(地址)时并没有执行后置路由守卫，所以说也不会再后置守卫中关闭进度条了
+      nprogress.done()
     } else {
-      const hasGetUserInfo = store.getters.name
-      if (hasGetUserInfo) {
-        next()
-      } else {
-        try {
-          // get user info
-          await store.dispatch('user/getInfo')
-
-          next()
-        } catch (error) {
-          // remove token and go to login page to re-login
-          await store.dispatch('user/resetToken')
-          Message.error(error || 'Has Error')
-          next(`/login?redirect=${to.path}`)
-          NProgress.done()
-        }
-      }
+      // 说明访问的不是登录页，直接放过就好了
+      next()
     }
   } else {
-    /* has no token*/
-
-    if (whiteList.indexOf(to.path) !== -1) {
-      // in the free login whitelist, go directly
+    //   没有token
+    // 首先先验证白名单中是否包含路径to.path 使用whiteList.indexOf(to.path) > -1判断也可以
+    if (whiteList.includes(to.path)) {
+      // 直接放行
       next()
     } else {
-      // other pages that do not have permission to access are redirected to the login page.
-      next(`/login?redirect=${to.path}`)
-      NProgress.done()
+      // 中转到登录页
+      next('/login')
+      // 手动关闭进度条
+      nprogress.done()
     }
   }
 })
 
+/**
+ * 后置守卫
+ */
 router.afterEach(() => {
-  // finish progress bar
-  NProgress.done()
+  nprogress.done()
 })
