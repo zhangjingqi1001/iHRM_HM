@@ -14,3 +14,15 @@ export function login(Data) {
     // 在ES6中上面data: Data可以简写为 data
   })
 }
+
+// 获取用户基本信息
+export function getUserInfo() {
+  return request({
+    // 请求地址
+    url: '/sys/profile',
+    // 请求方式
+    method: 'GET'
+    // 请求参数
+    // data: Data
+  })
+}

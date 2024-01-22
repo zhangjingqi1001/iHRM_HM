@@ -1,14 +1,22 @@
 <template>
   <div class="navbar">
-    <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
+    <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar"/>
 
-    <breadcrumb class="breadcrumb-container" />
+    <breadcrumb class="breadcrumb-container"/>
 
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar">
-          <i class="el-icon-caret-bottom" />
+          <!--用户头像，v-if判断用户头像是否存在-->
+          <img v-if="avatar" :src="avatar" class="user-avatar">
+          <!--如果用户头像不存在的时候执行下面的v-else,显示用户名的第一个字-->
+          <!--当name时null或者undefined时name.charAt(0)会报错，但是当在name之后加上“?”后，如果name为null或者undefined，就不会执行charAt(0)，也不会报错了-->
+          <!-- "name?" 可选操作符，表示验证name是否一定有值。 此语法需要vue2.7.0之后的版本-->
+          <span v-else class="username">{{ name?.charAt(0) }}</span>
+          <!--用户名称-->
+          <span class="name">{{ name }}</span>
+          <!--图标（设置图标，是一个齿轮的样式）-->
+          <i class="el-icon-setting"/>
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <router-link to="/">
@@ -42,9 +50,12 @@ export default {
     Hamburger
   },
   computed: {
+    // 辅助函数，自动引入getters中的属性
+    // 引入头像和用户名称
     ...mapGetters([
       'sidebar',
-      'avatar'
+      'avatar',
+      'name'
     ])
   },
   methods: {
@@ -65,7 +76,7 @@ export default {
   overflow: hidden;
   position: relative;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
 
   .hamburger-container {
     line-height: 46px;
@@ -73,7 +84,7 @@ export default {
     float: left;
     cursor: pointer;
     transition: background .3s;
-    -webkit-tap-highlight-color:transparent;
+    -webkit-tap-highlight-color: transparent;
 
     &:hover {
       background: rgba(0, 0, 0, .025)
@@ -117,12 +128,47 @@ export default {
       .avatar-wrapper {
         margin-top: 5px;
         position: relative;
+        // 水平居中
+        display: flex;
+        align-items: center;
+        // 用户头像不存在时，默认使用使用用户名的第一个字当做头像
+        .username {
+          // 垂直居中
+          width: 30px;
+          height: 30px;
+          line-height: 30px;
+          // 水平居中
+          text-align: center;
+          // 背景颜色
+          background-color: #04c9be;
+          // 字体颜色
+          color: #fff;
+          // 圆角
+          border-radius: 50%;
+          // 距离右边距
+          margin-right: 4px;
+        }
 
+        // 用户名样式
+        .name {
+          // 用户名称距离右侧一定的距离
+          margin-right: 10px;
+          // 文字大小
+          font-size: 16px;
+        }
+
+        // 用户头像样式
         .user-avatar {
           cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          // 设置圆角
+          border-radius: 50%;
+        }
+
+        // 齿轮图标样式
+        .el-icon-setting {
+          font-size: 20px;
         }
 
         .el-icon-caret-bottom {

@@ -5,6 +5,8 @@ import axios from 'axios'
 import store from '@/store/index.js'
 // 按需引入element-ui组件,
 import { Message } from 'element-ui'
+// 引入路由
+import router from '@/router'
 
 // 创建一个axios实例
 // 根据指定配置创建一个新的axios，也就是每个新的axios都有自己的配置
@@ -50,7 +52,16 @@ service.interceptors.response.use(
     }
   },
   // 请求失败时响应
-  (error) => {
+  async(error) => {
+    if (error.response.status === 401) {
+      Message({ type: 'warning', message: 'token 超时了，请重新登录' })
+      // token超时,调用action退出登录
+      // dispatch返回的是一个promise，这里会等dispatch执行完再执行路由跳转
+      await store.dispatch('user/logout')
+      // 主动跳转到登录页
+      router.push('/login')
+      return Promise.reject(error)
+    }
     // this.$message.warning 不能这么使用，因为此时的this不是组件实例对象
     Message({ type: 'error', message: error.message })
     // 默认支持promise的,下面语句相当于终止了当前promise的执行

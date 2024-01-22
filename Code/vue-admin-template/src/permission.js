@@ -16,7 +16,7 @@ const whiteList = ['/login', '/404']
  *  from：信息从哪里来
  *  next：必须要执行的函数。如果不执行next，跳转就不会执行。说白了就是让着通行，如果没有next的话，页面会直接空白
  */
-router.beforeEach((to, from, next) => {
+router.beforeEach(async(to, from, next) => {
   // 前置守卫开启进度条
   nprogress.start()
   if (store.getters.token) {
@@ -29,7 +29,13 @@ router.beforeEach((to, from, next) => {
       // 当next(地址)时并没有执行后置路由守卫，所以说也不会再后置守卫中关闭进度条了
       nprogress.done()
     } else {
-      // 说明访问的不是登录页，直接放过就好了
+      // 说明访问的不是登录页
+      // 首先判断是否获取过用户资料
+      if (!store.getters.userId) {
+        // 说明没有获取过用户资料
+        await store.dispatch('user/getUserInfo')
+      }
+      // 直接放过就好了
       next()
     }
   } else {
