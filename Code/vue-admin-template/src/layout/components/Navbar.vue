@@ -21,21 +21,59 @@
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <router-link to="/">
             <el-dropdown-item>
-              Home
+              <!--Home-->
+              首页
             </el-dropdown-item>
           </router-link>
           <a target="_blank" href="https://github.com/PanJiaChen/vue-admin-template/">
-            <el-dropdown-item>Github</el-dropdown-item>
+            <el-dropdown-item>
+              <!--Github-->
+              项目地址
+            </el-dropdown-item>
           </a>
-          <a target="_blank" href="https://panjiachen.github.io/vue-element-admin-site/#/">
-            <el-dropdown-item>Docs</el-dropdown-item>
+          <!--a标签有一个默认事件(跳出，也就是跳到某个链接)，我们要阻止默认事件的发生，所以添加-->
+          <a target="_blank" @click.prevent="updatePassword">
+            <el-dropdown-item>
+              <!--Docs-->
+              修改密码
+            </el-dropdown-item>
           </a>
-          <el-dropdown-item divided @click.native="logout">
-            <span style="display:block;">Log Out</span>
+          <!--divided 属性是在列的上面有个分割线，我们去掉-->
+          <!--<el-dropdown-item divided @click.native="logout">-->
+          <el-dropdown-item @click.native="logout">
+            <span style="display:block;">
+             <!--Log Out-->
+              退出登录
+            </span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </div>
+
+    <!--放置dialog-->
+    <!--title是dialog的标题; :visible.sync用来控制是否显示弹出层 sync作用是点击“×”号时能把弹出层关闭掉-->
+    <el-dialog title="修改密码" :visible.sync="showDialog" width="450px">
+      <!--放置dialog表单-->
+      <!--设置完成label-width="120px"后，提示信息就和输入框在同一行了-->
+      <el-form label-width="120px">
+        <!--label属性其实就是此item的提示信息-->
+        <el-form-item label="旧密码">
+          <el-input show-password size="small"></el-input>
+        </el-form-item>
+        <!--show-password 属性表示输入的内容是密文-->
+        <el-form-item label="新密码">
+          <el-input show-password size="small"></el-input>
+        </el-form-item>
+        <el-form-item label="重复密码">
+          <el-input show-password size="small"></el-input>
+        </el-form-item>
+        <!--按钮-->
+        <el-form-item>
+          <el-button size="mini" type="primary">确认修改</el-button>
+          <el-button size="mini">取消修改</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
@@ -49,6 +87,12 @@ export default {
     Breadcrumb,
     Hamburger
   },
+  data() {
+    return {
+      // 控制弹层的显示和隐藏
+      showDialog: true
+    }
+  },
   computed: {
     // 辅助函数，自动引入getters中的属性
     // 引入头像和用户名称
@@ -59,12 +103,18 @@ export default {
     ])
   },
   methods: {
+    updatePassword() {
+      // 弹出层显示
+      this.showDialog = true
+    },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
+      // 清除用户信息
       await this.$store.dispatch('user/logout')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+      // await表示等待上面的代码执行完毕后，执行下面的代码，跳转页面到登录界面
+      this.$router.push('/login')
     }
   }
 }

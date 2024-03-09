@@ -55,7 +55,7 @@ service.interceptors.response.use(
   async(error) => {
     if (error.response.status === 401) {
       Message({ type: 'warning', message: 'token 超时了，请重新登录' })
-      // token超时,调用action退出登录
+      // token超时,调用action退出登录(删除用户信息)
       // dispatch返回的是一个promise，这里会等dispatch执行完再执行路由跳转
       await store.dispatch('user/logout')
       // 主动跳转到登录页
