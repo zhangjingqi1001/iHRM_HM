@@ -52,25 +52,27 @@
 
     <!--放置dialog-->
     <!--title是dialog的标题; :visible.sync用来控制是否显示弹出层 sync作用是点击“×”号时能把弹出层关闭掉-->
-    <el-dialog title="修改密码" :visible.sync="showDialog" width="450px">
+    <!--除此之外我们还要添加@close="btnCancel，因为我们只添加sync，当关闭dialog再打开后，表单验证的内容还会存在，所以再加一个@close，当dialog关闭后会执行@close-->
+    <el-dialog title="修改密码" @close="btnCancel" :visible.sync="showDialog" width="450px">
       <!--放置dialog表单-->
       <!--设置完成label-width="120px"后，提示信息就和输入框在同一行了-->
-      <el-form label-width="120px">
+      <!--ref属性是为了获取整个表单的属性-->
+      <el-form label-width="120px" :model="passForm" :rules="rules" ref="passForm">
         <!--label属性其实就是此item的提示信息-->
-        <el-form-item label="旧密码">
-          <el-input show-password size="small"></el-input>
+        <el-form-item label="旧密码" prop="oldPassword">
+          <el-input show-password v-model="passForm.oldPassword" size="small"></el-input>
         </el-form-item>
         <!--show-password 属性表示输入的内容是密文-->
-        <el-form-item label="新密码">
-          <el-input show-password size="small"></el-input>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input show-password v-model="passForm.newPassword" size="small"></el-input>
         </el-form-item>
-        <el-form-item label="重复密码">
-          <el-input show-password size="small"></el-input>
+        <el-form-item label="重复密码" prop="confirmPassword">
+          <el-input show-password size="small" v-model="passForm.confirmPassword"></el-input>
         </el-form-item>
         <!--按钮-->
         <el-form-item>
-          <el-button size="mini" type="primary">确认修改</el-button>
-          <el-button size="mini">取消修改</el-button>
+          <el-button @click="btnOK" size="mini" type="primary">确认修改</el-button>
+          <el-button @click="btnCancel" size="mini">取消修改</el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -81,6 +83,7 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import { updatePassword } from '@/api/user'
 
 export default {
   components: {
@@ -90,7 +93,48 @@ export default {
   data() {
     return {
       // 控制弹层的显示和隐藏
-      showDialog: true
+      showDialog: false,
+      // 修改密码功能表单内容
+      passForm: {
+        // 旧密码
+        oldPassword: '',
+        // 新密码
+        newPassword: '',
+        // 确认密码
+        confirmPassword: ''
+      },
+      // 修改密码功能的表单校验内容
+      rules: {
+        // 旧密码
+        oldPassword: [
+          // trigger: 'blur' 表示失去焦点的时候再触发校验功能
+          { required: true, message: '旧密码不能为空', trigger: 'blur' },
+          {}
+        ],
+        // 新密码
+        newPassword: [
+          { required: true, message: '新密码不能为空', trigger: 'blur' },
+          { min: 6, max: 16, message: '新密码长度6-16', trigger: 'blur' }
+        ],
+        // 确认密码
+        confirmPassword: [
+          { required: true, message: '重复密码不能为空', trigger: 'blur' },
+          // 当满足第一个required: true触发规则后，才会触发下面的这个规则
+          // 自定义校验规则validator，参数1：rule规则，参数2：value参数值，也是就是重复密码的值参数3：callback必须执行的回调函数
+          {
+            trigger: 'blur', validator: (rule, value, callback) => {
+              // 只有当此方法是牵头函数的时候，此处的this才指代组件实例对象
+              if (this.passForm.newPassword === value) {
+                // 用户输入的新密码和重复密码是相等的，我们执行一下callback回调函数
+                callback()
+              } else {
+                // 否则就放入一个错误对象
+                callback(new Error('重复密码和新密码输入不一致'))
+              }
+            }
+          }
+        ]
+      }
     }
   },
   computed: {
@@ -115,7 +159,29 @@ export default {
       await this.$store.dispatch('user/logout')
       // await表示等待上面的代码执行完毕后，执行下面的代码，跳转页面到登录界面
       this.$router.push('/login')
+    },
+    btnOK() {
+      this.$refs.passForm.validate(async isOK => {
+        if (isOK) {
+          // 表示校验通过，下一步调用接口
+          await updatePassword(this.passForm)
+          // 只要执行到这里，说明一定是执行成功
+          this.$message.success('修改密码成功')
+          this.btnCancel()
+          // // 关闭Dialog
+          // this.showDialog = false
+          // // 重置表单
+          // this.$refs.passForm.resetFields()
+        }
+      })
+    },
+    btnCancel() {
+      // 关闭Dialog
+      this.showDialog = false
+      // 重置表单
+      this.$refs.passForm.resetFields()
     }
+
   }
 }
 </script>

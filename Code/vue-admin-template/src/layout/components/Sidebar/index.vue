@@ -1,6 +1,6 @@
 <template>
   <div :class="{'has-logo':showLogo}">
-    <logo v-if="showLogo" :collapse="isCollapse" />
+    <logo v-if="showLogo" :collapse="isCollapse"/>
     <el-scrollbar wrap-class="scrollbar-wrapper">
       <el-menu
         :default-active="activeMenu"
@@ -12,7 +12,8 @@
         :collapse-transition="false"
         mode="vertical"
       >
-        <sidebar-item v-for="route in routes" :key="route.path" :item="route" :base-path="route.path" />
+        <!--遍历路由信息，生成sidebar-item组件，有多少个路由信息，就会生成多少个-->
+        <sidebar-item v-for="route in routes" :key="route.path" :item="route" :base-path="route.path"/>
       </el-menu>
     </el-scrollbar>
   </div>
@@ -21,6 +22,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import Logo from './Logo'
+// SidebarItem组件
 import SidebarItem from './SidebarItem'
 import variables from '@/styles/variables.scss'
 
@@ -30,7 +32,9 @@ export default {
     ...mapGetters([
       'sidebar'
     ]),
+    // 路由信息的计算属性
     routes() {
+      // 当前路由的所有路由信息
       return this.$router.options.routes
     },
     activeMenu() {
