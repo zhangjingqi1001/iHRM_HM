@@ -45,7 +45,9 @@ export function parseTime(time, cFormat) {
   const time_str = format.replace(/{([ymdhisa])+}/g, (result, key) => {
     const value = formatObj[key]
     // Note: getDay() returns 0 on Sunday
-    if (key === 'a') { return ['日', '一', '二', '三', '四', '五', '六'][value ] }
+    if (key === 'a') {
+      return ['日', '一', '二', '三', '四', '五', '六'][value]
+    }
     return value.toString().padStart(2, '0')
   })
   return time_str
@@ -114,4 +116,24 @@ export function param2Obj(url) {
     }
   })
   return obj
+}
+
+/**
+ * 列表数据转树形数据
+ * rootValue: 其实就是pid（父id）
+ */
+export function transListToTreeData(list, rootValue) {
+  const arr = []
+  list.forEach(item => {
+    if (item.pid === rootValue) {
+      // 找到了匹配的节点
+      arr.push(item)
+      // 当前节点的id和当前节点的字节点的pid相等
+      // 下面的方法其实就是找当前节点的子节点
+      const children = transListToTreeData(list, item.id) // 找到的节点的子节点
+      item.children = children // 将子节点赋值给当前节点
+      // 我们先push再赋值childern也没关系，因为是一个对象，地址是一样的
+    }
+  })
+  return arr
 }
