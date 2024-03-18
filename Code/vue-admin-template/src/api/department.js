@@ -16,3 +16,27 @@ export function getDepartment() {
     // 在ES6中上面data: Data可以简写为 data
   })
 }
+
+/**
+ * 获取部门负责人的数据
+ */
+export function getManagerList() {
+  return request({
+    url: '/sys/user/simple',
+    // 请求方式
+    method: 'GET'
+  })
+}
+
+/**
+ *  新增组织接口
+ */
+export function addDepartment(data) {
+  return request({
+    url: '/company/department',
+    // 请求方式
+    method: 'POST',
+    data: data
+  })
+}
+

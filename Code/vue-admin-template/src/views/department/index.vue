@@ -23,7 +23,8 @@
               <span class="tree-manager">{{ data.managerName }}</span>
               <!--下拉菜单组件-->
               <!--@command是下拉菜单的执行方法，当点击下拉菜单中的某一项的时候，就会执行operateDept方法-->
-              <el-dropdown @command="operateDept" >
+              <!--$event实参表示类型，也就是下面command中的值，表示事件所携带的默认参数，如果不传data.id的话，默认传入的就是$event实参-->
+              <el-dropdown @command="operateDept($event,data.id)">
                 <!--显示区域内容-->
                 <span class="el-dropdown-link">
                  操作<i class="el-icon-arrow-down el-icon--right"></i>
@@ -43,7 +44,9 @@
     <!--放置弹层-->
     <!--:show-dialog 是我们在add-dept组件中定义的props-->
     <!--sync修饰，表示会接受子组件的事件，也就是update:showDialog这个事件，然后会把值赋值给下面的showDialog-->
-    <add-dept :show-dialog.sync="showDialog"></add-dept>
+    <!--自定义事件updateDepartment，子组件触发，父组件执行getDepartment方法，刷新组织结构-->
+    <add-dept @updateDepartment="getDepartment" :current-node-id="currentNodeId" :show-dialog.sync="showDialog"
+    ></add-dept>
   </div>
 </template>
 
@@ -60,6 +63,8 @@ export default {
   comments: { AddDept },
   data() {
     return {
+      // 存储当前点击id
+      currentNodeId: null,
       // 数组属性
       depts: [''],
       defaultProps: {
@@ -84,11 +89,13 @@ export default {
       // 但是我们获取到的数据是列表的形式，没有层级结构，我们要使用递归的方式完成树形结构
       this.depts = transListToTreeData(result, 0)
     },
-    operateDept(type) {
-      if (type === 'add') {
+    operateDept($event, id) {
+      if ($event === 'add') {
         // 添加子部门
         // 显示弹层组件
         this.showDialog = true
+        // 当前点击节点的id
+        this.currentNodeId = id
       }
     }
   }
