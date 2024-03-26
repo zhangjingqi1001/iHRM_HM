@@ -45,13 +45,15 @@
     <!--:show-dialog 是我们在add-dept组件中定义的props-->
     <!--sync修饰，表示会接受子组件的事件，也就是update:showDialog这个事件，然后会把值赋值给下面的showDialog-->
     <!--自定义事件updateDepartment，子组件触发，父组件执行getDepartment方法，刷新组织结构-->
-    <add-dept @updateDepartment="getDepartment" :current-node-id="currentNodeId" :show-dialog.sync="showDialog"
+    <!--ref可以获取dom的实例对象，也可以获取自定义组件的实例对象-->
+    <add-dept ref="addDept" @updateDepartment="getDepartment" :current-node-id="currentNodeId"
+              :show-dialog.sync="showDialog"
     ></add-dept>
   </div>
 </template>
 
 <script>
-import { getDepartment } from '@/api/department'
+import { getDepartment, delDepartment } from '@/api/department'
 import { transListToTreeData } from '@/utils'
 // 引入封装的弹层组件
 import AddDept from './components/add-dept.vue'
@@ -96,6 +98,35 @@ export default {
         this.showDialog = true
         // 当前点击节点的id
         this.currentNodeId = id
+      } else if ($event === 'edit') {
+        // 编辑部门的场景
+        this.showDialog = true
+        // 当前点击节点的id，后面要用他获取数据，获取数据的最终目的就是数据回显
+        // 下面的代码存在问题：
+        // 我们点击编辑的时候，会提示我们“找不到对应的部门”，然后我们发现下面传到add-dept组件中的id为null
+        // 下面这行代码更新了子组件add-dept中的props，然后又直接调用了子组件add-dept中的getDepartmentDetail方法（同步方法）
+        // 但是我们的更新props是一个异步的方法，所以存在一种可能，先执行了getDepartmentDetail方法又刷新的props
+        this.currentNodeId = id
+        // 要在子组件获取数据
+        // 父组件调用子组件的方法来获取数据
+        // 此时this.$refs.addDept等同于子组件的this
+        // this.$refs.addDept.getDepartmentDetail() 在这里调用会和props产生同步异步的问题
+        // 有没有办法等到props更新之后再去调用getDepartmentDetail方法呢？
+        // this.$nextTick会等到我们数据更新完毕，执行回调函数
+        this.$nextTick(() => {
+          this.$refs.addDept.getDepartmentDetail()
+        })
+      } else if ($event === 'del') {
+        // 删除部门
+        // 假如用户点击了“取消”，我们这里是不需要管的
+        this.$confirm('您确定要删除该部门吗?').then(async() => {
+          // 进入到这里，说明用户点击了确认按钮
+          await delDepartment(id)
+          // 提示消息
+          this.$message.success('删除部门成功')
+          // 重新拉取数据
+          getDepartment()
+        })
       }
     }
   }

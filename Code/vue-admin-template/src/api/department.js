@@ -40,3 +40,35 @@ export function addDepartment(data) {
   })
 }
 
+/**
+ * 获取部门详情
+ */
+export function getDepartmentDetail(id) {
+  // 不写请求方式的话，默认为get类型
+  // 这个地方使用了一个模板字符串
+  return request({
+    url: `/company/department/${id}`
+  })
+}
+
+/**
+ * 更新部门接口
+ */
+export function updateDepartment(data) {
+  return request(({
+    url: `/company/department/${data.id}`,
+    method: 'PUT',
+    data: data
+  }))
+}
+
+/**
+ * 删除部门
+ */
+export function delDepartment(id) {
+  return request(({
+    url: `/company/department/${id}`,
+    method: 'delete'
+  }))
+}
+
